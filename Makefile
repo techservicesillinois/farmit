@@ -98,7 +98,7 @@ test: lint static check .coverage
 
 # Show coverage report
 coverage: .coverage
-	$(TOX) -- coverage report --omit='*/.tox/*,tests/*' --fail-under 80
+	$(TOX) -- coverage report --omit='*/.tox/*,tests/*' --fail-under 70
 
 # Run tests directly against source code in develop mode
 develop: lint static .install develop-coverage
