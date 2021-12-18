@@ -11,10 +11,10 @@ jobs:
       with:
         fetch-depth: 0  # setuptools_scm needs this to calculate the version
 
-    - name: Set up Python 3.10
+    - name: Set up Python 3.10.1
       uses: actions/setup-python@v2
       with:
-        python-version: 3.10
+        python-version: 3.10.1
 
     - name: Save pip cache
       uses: actions/cache@v2
@@ -60,7 +60,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: [3.6,3.7,3.8,3.9,3.10]
+        python-version: [3.6,3.7,3.8,3.9,3.10.1]
 
     steps:
     - uses: actions/checkout@v2
@@ -157,10 +157,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python 3.10
+    - name: Set up Python 3.10.1
       uses: actions/setup-python@v2
       with:
-        python-version: 3.10
+        python-version: 3.10.1
 
     - name: Save pip cache
       uses: actions/cache@v2
