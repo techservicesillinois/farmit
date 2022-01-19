@@ -1,3 +1,4 @@
+from argparse import Namespace
 import os
 import datetime
 
@@ -17,7 +18,7 @@ def commit(repo: Repo, path: Path, file_content: str, commit_message: str,
     path = Path(repo.working_tree_dir) / path
     path.write_text(file_content)
     repo.index.add(str(path))
-    repo.index.commit(commit_message, author_date=date, commit_date=date)
+    return repo.index.commit(commit_message, author_date=date, commit_date=date)
 
 
 @pytest.fixture
@@ -112,6 +113,13 @@ def test_strip_normalize_newlines(repo):
     assert diff[0].a_blob.data_stream.read() == \
         b'## 1.1.0\n\n+ 2nd commit\n+ 1st commit\n\n' \
         b'## 1.0.0\n\n+ Initial Release'
+        
+
+def test_build_message():
+    commit = Namespace()
+    commit.msg = ' 2nd commit \r\n'
+
+    assert '+ 2nd commit\n' == farmit.build_message(commit)
 
 
 def test_version_increase(repo, capsys):
