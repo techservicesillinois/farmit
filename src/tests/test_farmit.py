@@ -105,10 +105,12 @@ def test_strip_normalize_newlines(repo):
 
     pytest.raises(SystemExit, farmit._main, ['minor'])
 
+    # Check contents of commit message
     release_branch = repo.branches['release/1.1.0'].commit
     assert release_branch.message == \
         "Release 1.1.0\n\n+ 2nd commit\n+ 1st commit\n"
-
+    
+    # Checking contents of CHANGELOG.md
     diff = release_branch.diff('master')
     assert diff[0].a_blob.data_stream.read() == \
         b'## 1.1.0\n\n+ 2nd commit\n+ 1st commit\n\n' \
@@ -119,7 +121,7 @@ def test_build_message():
     commit = Namespace()
     commit.msg = ' 2nd commit \r\n'
 
-    assert '+ 2nd commit\n' == farmit.build_message(commit)
+    assert '+ 2nd commit' == farmit.build_message(commit)
 
 
 def test_version_increase(repo, capsys):

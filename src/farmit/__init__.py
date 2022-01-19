@@ -184,8 +184,8 @@ def build_message(commit: Commit) -> str:
 
     # Convert commit message to List(str) & remove lines w/GitHub Keywords
     commit_msg = re.sub(regex, '', commit.msg).split('\n')
-    # Strip empty lines
-    commit_msg = [x for x in commit_msg if x.strip()]
+    # Remove empty lines and whitespace
+    commit_msg = [x.strip() for x in commit_msg if x.strip()]
 
     # Append '+ ' to commit title
     title = ['+ ' + commit_msg[0]]
@@ -230,6 +230,7 @@ def update_changelog(args: Namespace, changelog_path: str, entry: str):
         )
 
     if entry.split('\n')[0] not in content:
+        # TODO: On Windows, \n is converted to \r\n
         with open(changelog_path, 'w') as f:
             f.write(entry)
             f.write(content)
