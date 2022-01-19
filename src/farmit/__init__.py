@@ -292,7 +292,8 @@ def commit_push_changelog(args: Namespace, repo: Repo, remote: Remote,
 
 def print_pr_url(repo: Repo, remote: Remote, branch: Head):
     """Print a url for creating a PR if origin is on GitHub"""
-    scheme, path = remote.url.split(':')
+    url_split = remote.url.split(':')
+    scheme, path = url_split[0], ':'.join(url_split[1:])
     path = (path[:-4] if path.endswith('.git') else path).split('/')
 
     if 'git@github.com' == scheme or path[2] == 'github.com':
