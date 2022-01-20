@@ -16,7 +16,9 @@ def commit(repo: Repo, path: Path, file_content: str, commit_message: str,
     date = datetime.date(*date).strftime('%Y-%m-%d %H:%M:%S')
 
     path = Path(repo.working_tree_dir) / path
-    path.write_text(file_content)
+    with open(path, 'wb') as new_file:
+        # 'wb' and 'encode' force unix line endings on Windows
+        new_file.write(file_content.encode('utf8'))
     repo.index.add(str(path))
     return repo.index.commit(commit_message, author_date=date, commit_date=date)
 

@@ -221,18 +221,18 @@ def next_release(args: Namespace) -> Tuple[str, str]:
 def update_changelog(args: Namespace, changelog_path: str, entry: str):
     """Prepend entry to changelog_path"""
     try:
-        with open(changelog_path, 'r') as f:
+        with open(changelog_path, 'rb') as f:
             content = f.read()
     except FileNotFoundError:
-        content = ''
+        content = b''
         logger.warning(
             "WARNING: Creating CHANGELOG.md since it does not exist"
         )
 
-    if entry.split('\n')[0] not in content:
-        # TODO: On Windows, \n is converted to \r\n
-        with open(changelog_path, 'w') as f:
-            f.write(entry)
+    if entry.split('\n')[0].encode('utf8') not in content:
+        # Without 'b', on Windows, \n is converted to \r\n
+        with open(changelog_path, 'wb') as f:
+            f.write(entry.encode('utf8'))
             f.write(content)
 
         logger.info("Updated CHANGELOG.md:")
