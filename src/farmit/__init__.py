@@ -291,11 +291,17 @@ def commit_push_changelog(args: Namespace, repo: Repo, remote: Remote,
         logger.warning("Release branch has already been pushed")
 
 
-def print_pr_url(repo: Repo, remote: Remote, branch: Head):
-    """Print a url for creating a PR if origin is on GitHub"""
+def parse_remote_url(remote: Remote) -> Tuple[str, List[str]]:
+    """Return remote url scheme as a string and path as a list."""
     url_split = remote.url.split(':')
     scheme, path = url_split[0], ':'.join(url_split[1:])
-    path = (path[:-4] if path.endswith('.git') else path).split('/')
+
+    return scheme, (path[:-4] if path.endswith('.git') else path).split('/')
+
+
+def print_pr_url(repo: Repo, remote: Remote, branch: Head):
+    """Print a url for creating a PR if origin is on GitHub"""
+    scheme, path = parse_remote_url(remote)
 
     if 'git@github.com' == scheme or path[2] == 'github.com':
         br, org, repo = (branch.name, path[-2], path[-1])
