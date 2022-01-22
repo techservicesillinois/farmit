@@ -120,11 +120,16 @@ def test_strip_normalize_newlines(repo):
         b'## 1.0.0\n\n+ Initial Release'
 
 
-def test_build_message():
+@pytest.mark.parametrize("mesg, output, error", [
+    (' commit \r\n', '+ commit', 'Whitespace remains'),
+    ('commit\nFixes #18', '+ commit', 'Fixes line remains'),
+    ('commit\nCo-authored-by: tstark', '+ commit', 'Coauthors remain'),
+])
+def test_build_message(mesg, output, error):
     commit = Namespace()
-    commit.msg = ' 2nd commit \r\n'
+    commit.msg = mesg
 
-    assert '+ 2nd commit' == farmit.build_message(commit)
+    assert output == farmit.build_message(commit), error
 
 
 def test_version_increase(repo, capsys):

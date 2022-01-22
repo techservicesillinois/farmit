@@ -180,8 +180,9 @@ def build_changelog_entries(version: str, commits: List[Commit]
 def build_message(commit: Commit) -> str:
     """Return changelog entry for a single commit"""
     keywords = r'fix(es|ed)|close(s|d)|resolve(s|d)|address(es|ed)|part of'
-    regex = r'(?im)^\s*(' + keywords + r')\s*#\d+$'
+    regex = r'(?im)^\s*(' + keywords + r')\s*#\d+$|^Co-authored-by.*$'
 
+    #import ipdb; ipdb.set_trace()
     # Convert commit message to List(str) & remove lines w/GitHub Keywords
     commit_msg = re.sub(regex, '', commit.msg).split('\n')
     # Remove empty lines and whitespace
