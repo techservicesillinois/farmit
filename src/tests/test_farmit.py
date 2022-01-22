@@ -20,7 +20,8 @@ def commit(repo: Repo, path: Path, file_content: str, commit_message: str,
         # 'wb' and 'encode' force unix line endings on Windows
         new_file.write(file_content.encode('utf8'))
     repo.index.add(str(path))
-    return repo.index.commit(commit_message, author_date=date, commit_date=date)
+    return repo.index.commit(commit_message, author_date=date,
+                             commit_date=date)
 
 
 @pytest.fixture
@@ -111,13 +112,13 @@ def test_strip_normalize_newlines(repo):
     release_branch = repo.branches['release/1.1.0'].commit
     assert release_branch.message == \
         "Release 1.1.0\n\n+ 2nd commit\n+ 1st commit\n"
-    
+
     # Checking contents of CHANGELOG.md
     diff = release_branch.diff('master')
     assert diff[0].a_blob.data_stream.read() == \
         b'## 1.1.0\n\n+ 2nd commit\n+ 1st commit\n\n' \
         b'## 1.0.0\n\n+ Initial Release'
-        
+
 
 def test_build_message():
     commit = Namespace()
