@@ -63,8 +63,7 @@ $(TOX_ENV): build | cache
 # https://packaging.python.org/guides/index-mirrors-and-caches/#caching-with-pip
 # https://www.gnu.org/software/make/manual/make.html#Prerequisite-Types
 cache: setup.py | build
-	# TODO: Remove pytest -- THIS IS A HACK! testing should install pytest!
-	pip wheel --wheel-dir=$@ $(WHEEL) $(WHEEL)[testing] coverage pytest
+	pip wheel --wheel-dir=$@ $(WHEEL) $(WHEEL)[test]
 	@touch $@
 
 # Run tests on multiple versions of Python (POSIX only)
