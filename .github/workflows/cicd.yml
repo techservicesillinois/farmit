@@ -142,8 +142,9 @@ jobs:
     - name: Tests
       run: make test
 
-    - name: Coverage report
-      run: make coverage report
+# TODO: coverage is broken...
+#    - name: Coverage report
+#      run: make coverage report
 
     - name: Archive coverage report
       uses: actions/upload-artifact@v2
