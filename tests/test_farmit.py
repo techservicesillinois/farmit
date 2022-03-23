@@ -124,11 +124,7 @@ def test_strip_normalize_newlines(repo):
     (' commit \r\n', '+ commit', 'Whitespace remains'),
     ('commit\nFixes #18', '+ commit', 'Fixes line remains'),
     ('commit\nCo-authored-by: tstark', '+ commit', 'Coauthors remain'),
-    ('Establish JIRA connection when processing --file (#1083) \
-     \nCloses #1021 \
-     \nCloses #1031',
-     '+ Establish JIRA connection when processing --file (#1083)',
-     'Multiple closes remain')
+    ('commit\nCloses #1021\nCloses #2', '+ commit', 'Multiple closes remain')
 ])
 def test_build_message(mesg, output, error):
     commit = Namespace()
