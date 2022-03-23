@@ -303,7 +303,8 @@ def print_pr_url(repo: Repo, remote: Remote, branch: Head):
     """Print a url for creating a PR if origin is on GitHub"""
     scheme, path = parse_remote_url(remote)
 
-    if 'git@github.com' == scheme or path[2] == 'github.com':
+    if 'git@github.com' == scheme or \
+       (len(path) > 1 and path[2] == 'github.com'):
         br, org, repo = (branch.name, path[-2], path[-1])
 
         print(
