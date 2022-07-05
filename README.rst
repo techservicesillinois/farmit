@@ -82,33 +82,8 @@ options
     returned.
 
 
-configure
-`````````
-
-See `Getting Started`_ and online documentation for documentation on this
-subcommand::
-
-    $ aws login configure help
-
 options
 """""""
-
-``--verbose``
-    Display verbose output. The flag can be repeated up to three
-    times. Each time it is repeated more detailed information is
-    returned.
-
-
-logout
-------
-
-See `Getting Started`_ and online documentation for documentation on this
-subcommand::
-
-    $ aws logout help
-
-options
-```````
 
 ``--verbose``
     Display verbose output. The flag can be repeated up to three
