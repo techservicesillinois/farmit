@@ -35,7 +35,7 @@ import traceback
 
 from argparse import Namespace
 from io import StringIO
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from git import Head, Repo, Remote
 from git.exc import GitCommandError
@@ -200,27 +200,28 @@ def build_message(commit: Commit) -> str:
     return '\n'.join(title + description)
 
 
-def next_release(args: Namespace) -> Tuple[str, str]:
+def get_next_release(args: Namespace, last_release: Optional[str]) -> str:
     """Returns next & current release version strings"""
-    next_release, _ = get_version().split('.dev')
 
-    version = Version(next_release)
+    if not last_release:
+        version = Version('0.0.0')
+    else:
+        version = Version(last_release)
+
     major = version.major
     minor = version.minor
     micro = version.micro
-
-    current_release = f"{major}.{minor}.{micro-1}"
 
     if args.release == 'major':
         next_release = f"{major+1}.0.0"
     elif args.release == 'minor':
         next_release = f"{major}.{minor+1}.0"
     elif args.release == 'micro':
-        pass
+        next_release = f"{major}.{minor}.{micro+1}"
     else:
         next_release = args.release
 
-    return next_release, current_release
+    return next_release
 
 
 def update_changelog(args: Namespace, changelog_path: str, entry: str):
@@ -245,10 +246,26 @@ def update_changelog(args: Namespace, changelog_path: str, entry: str):
     else:
         logger.warning("CHANGELOG.md is already up-to-date")
 
+def get_current_release(repo: Repo):
+    """Get the current release based on last tag."""
+
+    # Check for any tags
+    if not repo.tags:
+        return None
+
+    next_version, _ = get_version().split('.dev')
+    next = Version(next_version)
+    # import pdb;pdb.set_trace()
+    return f"{next.major}.{next.minor}.{next.micro-1}"
+
 
 def main(args: Namespace, repo: Repo):
     remote = repo.remote(args.remote)
-    version, current_release = next_release(args)
+
+    # TODO: Handle the edge case where no previous tag has been set.
+    current_release = get_current_release(repo)
+    version = get_next_release(args, current_release)
+
     branch = create_release_branch(args, repo, remote, version)
 
     # Retrieve unreleased commits

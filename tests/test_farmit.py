@@ -9,7 +9,6 @@ from pathlib import Path
 
 from git import Repo
 
-
 def commit(repo: Repo, path: Path, file_content: str, commit_message: str,
            date: str):
     """Create a file & commit it."""
@@ -49,6 +48,27 @@ def repo(tmp_path, remote_url, request):
     repo.create_tag('1.0.0')
     repo.git.push('--set-upstream', 'origin', 'master')
     repo.git.push('--tags')
+    repo.git.remote('set-head', 'origin', '-a')
+
+    os.chdir(str(repo_path))
+    yield repo
+    os.chdir(request.config.invocation_dir)
+
+
+@pytest.fixture
+def no_tags_repo(tmp_path, remote_url, request):
+    """Returns a Git repository with one commit & no tags."""
+    today = (1970, 5, 29)
+
+    repo_path = tmp_path / "test_repo"
+    repo_path.mkdir()
+    repo = Repo.init(repo_path)
+
+    commit(repo, "README.md", "Awesome repo",
+           '1st commit', today)
+
+    repo.create_remote('origin', url=remote_url)
+    repo.git.push('--set-upstream', 'origin', 'master')
     repo.git.remote('set-head', 'origin', '-a')
 
     os.chdir(str(repo_path))
@@ -150,3 +170,20 @@ def test_version_increase(repo, capsys):
         set([branch.name for branch in repo.branches])
     assert repo.branches['release/1.0.11'].commit.message == \
         "Release 1.0.11\n\n+ 1st commit\n"
+
+@pytest.mark.parametrize("version, expected, args", [
+    ('1.1.0', '1.1.1', ['micro', '--dry-run']),
+    ('1.1.0', '1.2.0', ['minor', '--dry-run']),
+    ('1.1.0', '2.0.0', ['major', '--dry-run']),
+    ('1.1.0', '9.8.9', ['9.8.9', '--dry-run']),
+])
+def test_get_next_release(version, expected, args):
+
+    parsed_args = farmit.init_parser(farmit._easter_egg()).parse_args(args)
+    next = farmit.get_next_release(parsed_args, version)
+    assert next == expected
+
+
+def test_get_no_current_release(no_tags_repo):
+    next = farmit.get_current_release(no_tags_repo)
+    assert next == None
