@@ -112,6 +112,11 @@ def init_parser(parser):
         help="Release type (major, minor, micro) or version tag"
     )
     parser.add_argument(
+        "-d",
+        "--dry-run",
+        action='store_true',
+        help="Do a dry-run without making changes")
+    parser.add_argument(
         "-r",
         "--remote",
         type=str,
@@ -260,10 +265,14 @@ def main(args: Namespace, repo: Repo):
     entry = f"{title}\n{body}\n"
 
     changelog_path = os.path.join(repo.working_tree_dir, 'CHANGELOG.md')
-    update_changelog(args, changelog_path, entry)
-
-    commit_push_changelog(args, repo, remote, changelog_path, version, body)
-    print_pr_url(repo, remote, branch)
+    if args.dry_run:
+        print("If not run with --dry-run, farmit would update "
+              f"{changelog_path} with:\n{entry}")
+    else:
+        update_changelog(args, changelog_path, entry)
+        commit_push_changelog(args, repo, remote, changelog_path, version,
+                              body)
+        print_pr_url(repo, remote, branch)
 
 
 def commit_push_changelog(args: Namespace, repo: Repo, remote: Remote,
