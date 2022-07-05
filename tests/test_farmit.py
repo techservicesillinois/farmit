@@ -34,19 +34,26 @@ def remote_url(tmp_path):
 
 
 @pytest.fixture
-def repo(tmp_path, remote_url, request):
-    """Returns a Git repository with one commit & tag."""
+def repo(tmp_path, remote_url, request, include_tag=True):
+    """Returns a Git repository with one commit & tag.
+
+    If called with include_tag=False, no tag is created.
+    """
     today = (1970, 5, 29)
 
     repo_path = tmp_path / "test_repo"
     repo_path.mkdir()
     repo = Repo.init(repo_path)
 
-    commit(repo, "CHANGELOG.md", "## 1.0.0\n\n+ Initial Release",
-           'Release 1.0.0', today)
+    if include_tag:
+        commit(repo, "CHANGELOG.md", "## 1.0.0\n\n+ Initial Release",
+            'Release 1.0.0', today)
+    else:
+        commit(repo, "README.md", "Awesome repo", '1st commit', today)
 
     repo.create_remote('origin', url=remote_url)
-    repo.create_tag('1.0.0')
+    if include_tag:
+        repo.create_tag('1.0.0')
     repo.git.push('--set-upstream', 'origin', 'master')
     repo.git.push('--tags')
     repo.git.remote('set-head', 'origin', '-a')
@@ -54,6 +61,12 @@ def repo(tmp_path, remote_url, request):
     os.chdir(str(repo_path))
     yield repo
     os.chdir(request.config.invocation_dir)
+
+
+@pytest.fixture
+def no_tags_repo(tmp_path, remote_url, request):
+    """Returns a Git repository with one commit & no tags."""
+    return repo(tmp_path, remote_url, request, include_tag=False)
 
 
 @pytest.mark.parametrize("date1, date2, emesg", [
@@ -150,3 +163,20 @@ def test_version_increase(repo, capsys):
         set([branch.name for branch in repo.branches])
     assert repo.branches['release/1.0.11'].commit.message == \
         "Release 1.0.11\n\n+ 1st commit\n"
+
+
+@pytest.mark.parametrize("version, expected, args", [
+    ('1.1.0', '1.1.1', ['micro', '--dry-run']),
+    ('1.1.0', '1.2.0', ['minor', '--dry-run']),
+    ('1.1.0', '2.0.0', ['major', '--dry-run']),
+    ('1.1.0', '9.8.9', ['9.8.9', '--dry-run']),
+])
+def test_get_next_release(version, expected, args):
+
+    parsed_args = farmit.init_parser(farmit._easter_egg()).parse_args(args)
+    next = farmit.get_next_release(parsed_args, version)
+    assert next == expected
+
+
+def test_get_no_current_release(no_tags_repo):
+    assert farmit.get_current_release(no_tags_repo) == None

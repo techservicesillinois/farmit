@@ -35,7 +35,7 @@ import traceback
 
 from argparse import Namespace
 from io import StringIO
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from git import Head, Repo, Remote
 from git.exc import GitCommandError
@@ -200,27 +200,28 @@ def build_message(commit: Commit) -> str:
     return '\n'.join(title + description)
 
 
-def next_release(args: Namespace) -> Tuple[str, str]:
-    """Returns next & current release version strings"""
-    next_release, _ = get_version().split('.dev')
+def get_next_release(args: Namespace, last_release: Optional[str]) -> str:
+    """Returns next release version strings"""
 
-    version = Version(next_release)
+    if not last_release:
+        version = Version('0.0.0')
+    else:
+        version = Version(last_release)
+
     major = version.major
     minor = version.minor
     micro = version.micro
-
-    current_release = f"{major}.{minor}.{micro-1}"
 
     if args.release == 'major':
         next_release = f"{major+1}.0.0"
     elif args.release == 'minor':
         next_release = f"{major}.{minor+1}.0"
     elif args.release == 'micro':
-        pass
+        next_release = f"{major}.{minor}.{micro+1}"
     else:
         next_release = args.release
 
-    return next_release, current_release
+    return next_release
 
 
 def update_changelog(args: Namespace, changelog_path: str, entry: str):
@@ -246,9 +247,25 @@ def update_changelog(args: Namespace, changelog_path: str, entry: str):
         logger.warning("CHANGELOG.md is already up-to-date")
 
 
+def get_current_release(repo: Repo) -> str:
+    """Return the current release tag.
+    If no release tags exist None is returned."""
+
+    if not repo.tags:
+        return ""
+
+    # Version returns next micro release
+    next = Version(get_version().split('.dev'))
+    return f"{next.major}.{next.minor}.{next.micro-1}"
+
+
 def main(args: Namespace, repo: Repo):
     remote = repo.remote(args.remote)
-    version, current_release = next_release(args)
+
+    # TODO: Handle the edge case where no previous tag has been set.
+    current_release = get_current_release(repo)
+    version = get_next_release(args, current_release)
+
     branch = create_release_branch(args, repo, remote, version)
 
     # Retrieve unreleased commits
@@ -264,7 +281,7 @@ def main(args: Namespace, repo: Repo):
     title, body = build_changelog_entries(version, unreleased_commits)
     entry = f"{title}\n{body}\n"
 
-    changelog_path = os.path.join(repo.working_tree_dir, 'CHANGELOG.md')
+    changelog_path = os.path.join(str(repo.working_tree_dir), 'CHANGELOG.md')
     if args.dry_run:
         print("If not run with --dry-run, farmit would update "
               f"{changelog_path} with:\n{entry}")
@@ -272,7 +289,7 @@ def main(args: Namespace, repo: Repo):
         update_changelog(args, changelog_path, entry)
         commit_push_changelog(args, repo, remote, changelog_path, version,
                               body)
-        print_pr_url(repo, remote, branch)
+        print_pr_url(remote, branch)
 
 
 def commit_push_changelog(args: Namespace, repo: Repo, remote: Remote,
@@ -308,7 +325,7 @@ def parse_remote_url(remote: Remote) -> Tuple[str, List[str]]:
     return scheme, (path[:-4] if path.endswith('.git') else path).split('/')
 
 
-def print_pr_url(repo: Repo, remote: Remote, branch: Head):
+def print_pr_url(remote: Remote, branch: Head):
     """Print a url for creating a PR if origin is on GitHub"""
     scheme, path = parse_remote_url(remote)
 
@@ -339,7 +356,7 @@ def create_release_branch(args: Namespace, repo: Repo, remote: Remote,
             f"Created release branch {branch_name} from {default_branch}"
         )
     except OSError:
-        branch = repo.branches[branch_name]
+        branch = repo.branches()[branch_name]
         logger.warn(f"Release branch {branch_name} already exists")
 
     branch.checkout()
