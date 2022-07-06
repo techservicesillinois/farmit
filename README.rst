@@ -69,13 +69,8 @@ login
 options
 ```````
 
-``--ask-password``
-   Force prompt for password. This can be used to override the
-   ``enable_keyring`` property.
-``--force-refresh``
-    Forces the refresh process to retrieve new credentials for the
-    user selected role. If the refresh process is not running then
-    a normal login will proceed after a warning.
+``--dry-run``
+   Output generated update to CHANGELOG.md and stop.
 ``--verbose``
     Display verbose output. The flag can be repeated up to three
     times. Each time it is repeated more detailed information is
