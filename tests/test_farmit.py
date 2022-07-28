@@ -9,6 +9,7 @@ from pathlib import Path
 
 from git import Repo
 
+
 def commit(repo: Repo, path: Path, file_content: str, commit_message: str,
            date: str):
     """Create a file & commit it."""
@@ -64,8 +65,7 @@ def no_tags_repo(tmp_path, remote_url, request):
     repo_path.mkdir()
     repo = Repo.init(repo_path)
 
-    commit(repo, "README.md", "Awesome repo",
-           '1st commit', today)
+    commit(repo, "README.md", "Awesome repo", '1st commit', today)
 
     repo.create_remote('origin', url=remote_url)
     repo.git.push('--set-upstream', 'origin', 'master')
@@ -171,6 +171,7 @@ def test_version_increase(repo, capsys):
     assert repo.branches['release/1.0.11'].commit.message == \
         "Release 1.0.11\n\n+ 1st commit\n"
 
+
 @pytest.mark.parametrize("version, expected, args", [
     ('1.1.0', '1.1.1', ['micro', '--dry-run']),
     ('1.1.0', '1.2.0', ['minor', '--dry-run']),
@@ -185,5 +186,4 @@ def test_get_next_release(version, expected, args):
 
 
 def test_get_no_current_release(no_tags_repo):
-    next = farmit.get_current_release(no_tags_repo)
-    assert next == None
+    assert farmit.get_current_release(no_tags_repo) == None

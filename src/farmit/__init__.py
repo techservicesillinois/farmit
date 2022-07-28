@@ -201,7 +201,7 @@ def build_message(commit: Commit) -> str:
 
 
 def get_next_release(args: Namespace, last_release: Optional[str]) -> str:
-    """Returns next & current release version strings"""
+    """Returns next release version strings"""
 
     if not last_release:
         version = Version('0.0.0')
@@ -246,16 +246,16 @@ def update_changelog(args: Namespace, changelog_path: str, entry: str):
     else:
         logger.warning("CHANGELOG.md is already up-to-date")
 
-def get_current_release(repo: Repo):
-    """Get the current release based on last tag."""
 
-    # Check for any tags
+def get_current_release(repo: Repo) -> str:
+    """Return the current release tag.
+    If no release tags exist None is returned."""
+
     if not repo.tags:
         return None
 
-    next_version, _ = get_version().split('.dev')
-    next = Version(next_version)
-    # import pdb;pdb.set_trace()
+    # Version returns next micro release
+    next = Version(get_version().split('.dev'))
     return f"{next.major}.{next.minor}.{next.micro-1}"
 
 
