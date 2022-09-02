@@ -247,12 +247,12 @@ def update_changelog(args: Namespace, changelog_path: str, entry: str):
         logger.warning("CHANGELOG.md is already up-to-date")
 
 
-def get_current_release(repo: Repo) -> str:
+def get_current_release(repo: Repo) -> Optional[str]:
     """Return the current release tag.
     If no release tags exist None is returned."""
 
     if not repo.tags:
-        return ""
+        return None
 
     # Version returns next micro release
     next = Version(get_version().split('.dev'))
@@ -262,7 +262,6 @@ def get_current_release(repo: Repo) -> str:
 def main(args: Namespace, repo: Repo):
     remote = repo.remote(args.remote)
 
-    # TODO: Handle the edge case where no previous tag has been set.
     current_release = get_current_release(repo)
     version = get_next_release(args, current_release)
 
@@ -340,7 +339,7 @@ def print_pr_url(remote: Remote, branch: Head):
 
 
 def create_release_branch(args: Namespace, repo: Repo, remote: Remote,
-                          version: str) -> Head:
+                          version: Optional[str]) -> Head:
     """Create & checkout release branch off updated default branch"""
     global BRANCH_CHANGED
     branch_name = f"release/{version}"
@@ -356,7 +355,7 @@ def create_release_branch(args: Namespace, repo: Repo, remote: Remote,
             f"Created release branch {branch_name} from {default_branch}"
         )
     except OSError:
-        branch = repo.branches()[branch_name]
+        branch = repo.branches[branch_name]
         logger.warn(f"Release branch {branch_name} already exists")
 
     branch.checkout()
