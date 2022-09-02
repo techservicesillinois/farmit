@@ -33,7 +33,7 @@ deps-build: deps-publish
 
 # Python packages needed to build the documentation
 deps-doc:
-	$(PIP) Sphinx sphinx-autodoc-typehints sphinx_rtd_theme
+	$(PIP) sphinx_rtd_theme Sphinx sphinx-autodoc-typehints
 
 # Python packages needed to run tests
 deps-test:
