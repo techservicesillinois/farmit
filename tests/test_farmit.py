@@ -33,18 +33,14 @@ def remote_url(tmp_path):
     return f'file://{str(repo_path)}'
 
 
-@pytest.fixture
-def repo(tmp_path, remote_url, request, include_tag=True):
-    """Returns a Git repository with one commit & tag.
-
+def build_repo(repo_path, remote_url, include_tag=True) -> Repo:
+    """Populates a Git repository.
+    
     If called with include_tag=False, no tag is created.
     """
-    today = (1970, 5, 29)
 
-    repo_path = tmp_path / "test_repo"
-    repo_path.mkdir()
     repo = Repo.init(repo_path)
-
+    today = (1970, 5, 29)
     if include_tag:
         commit(repo, "CHANGELOG.md", "## 1.0.0\n\n+ Initial Release",
             'Release 1.0.0', today)
@@ -59,14 +55,27 @@ def repo(tmp_path, remote_url, request, include_tag=True):
     repo.git.remote('set-head', 'origin', '-a')
 
     os.chdir(str(repo_path))
-    yield repo
+    return repo
+
+
+@pytest.fixture
+def repo(tmp_path, remote_url, request):
+    """Returns a Git repository with one commit & tag.
+
+    """
+    repo_path = tmp_path / "test_repo"
+    repo_path.mkdir()
+    yield build_repo(repo_path, remote_url, True)
     os.chdir(request.config.invocation_dir)
 
 
 @pytest.fixture
 def no_tags_repo(tmp_path, remote_url, request):
     """Returns a Git repository with one commit & no tags."""
-    return repo(tmp_path, remote_url, request, include_tag=False)
+    repo_path = tmp_path / "test_repo"
+    repo_path.mkdir()
+    yield build_repo(repo_path, remote_url, False)
+    os.chdir(request.config.invocation_dir)
 
 
 @pytest.mark.parametrize("date1, date2, emesg", [
